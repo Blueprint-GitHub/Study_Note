@@ -1,3 +1,6 @@
-Python-Machine-Learning Third Edition by Sebastian Raschka의 한국판 버전인\
-머신러닝 교과서 with 파이썬,사이킷런,텐서플로우를 읽고 새로운 내용을 정리했습니다.
+머신러닝 공부 자료 모음
 
+Kaggle
+Deep Learning with Python second Edtion by Francois Chollet
+Hands-On Machine Learning with Scikit-Learn, Keras & Tensorflow Third Edtion by Aurelien Geron
+Python-Machine-Learning Third Edition by Sebastian Raschka
