@@ -1,0 +1,212 @@
+Pandas와 유사한 Polars 라이브러리에 대해서.
+
+Polars의 특징과 장점
+고성능: Rust 기반으로 고성능 처리가 가능.
+멀티스레딩: 자동적인 멀티스레딩을 지원하여 데이터 처리 속도를 향상.
+메모리 효율성: 데이터 저장 및 처리에 메모리 효율적인 방식을 사용.
+유연한 데이터 처리: SQL과 유사한 문법을 사용하여 복잡한 데이터 조작 수행 가능.
+대용량 데이터셋 처리: 큰 데이터셋에 대해 빠른 연산 제공.
+
+Polars는 인덱스가 없으므로 Pandas 처럼 train['data']나 train.loc[:, 'data']처럼 사용할 수 없고
+train.select['data'] , train.filter(pl.col('data') < 5)처럼 사용해야 한다.
+---------------------------------------------------------------------------------
+### Polars의 주요 함수 및 메서드 ###
+
+read_csv(): CSV 파일을 읽어 데이터 프레임을 생성.
+
+drop(): 특정 열을 제거.
+dropped_df = df.drop("unnecessary_column")
+dropped_df = df.drop(["column1", "column2", "column3"])
+
+filter(): 조건에 따라 데이터를 필터링.
+filtered_df = df.filter(pl.col("age") > 30)
+
+group_by() 및 agg(): 데이터를 그룹화하고 집계 함수를 적용.
+grouped_df = df.groupby("department").agg([
+    pl.col("salary").mean().alias("average_salary"),
+    pl.col("salary").sum().alias("total_salary")])
+
+sort(): 데이터를 특정 열에 따라 정렬.
+sorted_df = df.sort("sort_column", reverse = False)
+sorted_df = df.sort(["column1", "column2"])
+
+join(): 다른 데이터 프레임과 결합.
+joined_df = df1.join(df2, on="key_column", how="left")
+
+select() : 데이터 프레임에서 특정 열만을 선택할 때 사용.
+df.select(["column1", "column2"])
+
+with_columns() : 기존 데이터 프레임에 새로운 열을 추가하거나, 기존 열을 변환한 결과를 추가할 때 사용.
+df.with_columns(pl.col("existing_column").cast(pl.Float32))
+
+col(): 특정 열을 선택할 때 사용.
+df.select(pl.col("column_name"))
+
+duration(): 날짜/시간 연산에 사용되며, 특정 기간을 나타냄.
+df.with_columns((pl.col("datetime") + pl.duration(days=1)))
+
+alias(): 열의 이름을 변경할 때 사용.
+df.select(pl.col("old_name").alias("new_name"))
+
+cast(): 열의 데이터 타입을 변경할 때 사용.
+df.with_columns(pl.col("column_name").cast(pl.Float32))
+
+----------------------------------------------------------------------------------
+### 유용한 사용 예시 ###
+
+# 체이닝 작업
+result_df = (
+    df.select(["column1", "column2", "datetime"])
+      .filter(pl.col("column1") > 100)
+      .with_columns(pl.col("datetime").dt.month().alias("month"))
+)
+->  1. column1, column2, datetime 열만 선택된 데이터 프레임.
+    2. column1 값이 100보다 큰 행만 필터링됨.
+    3. datetime 열에서 월을 추출하여 month라는 새로운 열이 추가됨.
+
+# 조인
+join(): 다른 데이터 프레임과 결합.
+# 'key_column'을 기준으로 두 데이터 프레임을 조인
+joined_df = df1.join(df2, on="key_column", how="left")
+joined_df = df1.join(df2, on=["key1", "key2"], how="inner")
+joined_df = df1.join(df2, on="key_column", how="left", suffix="_df2")
+->  1. 조인 유형은 left, right, inner, outer 중에 하나를 선택한다.
+    2. 다중 조인을 사용할때는 키(on)를 리스트로 전달한다.
+    3. 조인 시 충돌하는 열 이름을 처리하기 위해 suffix 매개변수를 사용할 수 있다.
+
+# 시간대 처리
+df_time = df.with_columns(
+    pl.col("datetime").dt.convert_time_zone("UTC", "Europe/Berlin").alias("berlin_time")
+)
+->  1. datetime 열의 시간대를 UTC에서 "Europe/Berlin"으로 변환함.
+    2. 새로운 열 berlin_time이 데이터 프레임에 추가됨.
+
+# 시간대 기반 조인
+joined_df = df.join(
+    other_df,
+    left_on=pl.col("datetime"),
+    right_on=pl.col("datetime").dt.truncate("hour")
+)
+->  1. 'datetime' 열을 기준으로 두 데이터 프레임을 조인
+       (여기서는 'datetime' 열을 시간 단위로 절삭(truncate)하여 조인)
+    2. other_df의 datetime 열은 시간 단위로 절삭되어, df의 datetime과 일치하는
+       가장 가까운 시간에 해당하는 행과 조인됨
+
+# 열 결합
+combined_df = df.with_columns(
+    (pl.col("first_name") + " " + pl.col("last_name")).alias("full_name")
+)
+-> 'first_name'과 'last_name' 열을 결합하여 새로운 'full_name' 열을 생성
+
+# 윈도우 함수
+rolling_df = df.with_columns(
+    pl.col("value").rolling_mean(window_size=3).alias("rolling_mean")
+)
+-> 'value' 열에 대해 3개 행의 윈도우 크기로 이동 평균을 계산
+    value 열에 대한 이동 평균을 계산한 새로운 열 rolling_mean을 포함한 데이터 프레임을 반환함.
+    각 행의 rolling_mean 값은 해당 행을 포함하여 이전 두 행의 value 값의 평균을 나타냄.
+
+# 피벗 테이블
+pivot_df = df.pivot(
+    index="index_column",
+    columns="columns_column",
+    values="values_column"
+).fill_none(0)
+->  'index_column'을 인덱스로, 'columns_column'을 열로 사용하여 피벗 테이블 생성
+    'values_column'을 값으로 사용(값이 없으면 0으로 채워짐)
+---------------------------------------------------------------------------------
+kaggle 예제 
+https://www.kaggle.com/code/siddhvr/enefit-pebop-baseline
+https://www.kaggle.com/code/greysky/enefit-lgbm-baseline # 뭔가 깔끔해보임
+# 하이퍼파라미터 튜닝
+#study = optuna.create_study(direction='minimize', study_name='Regressor')
+#study.optimize(lgb_objective, n_trials=100, show_progress_bar=True)
+사용법 예제
+import lightgbm as lgb
+import optuna
+from sklearn.model_selection import cross_val_score
+
+def lgb_objective(trial):
+    params = {
+        "device": "gpu",
+        'n_iter': 200,
+        'verbosity': -1,
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.6, 1.0),
+        'colsample_bynode': trial.suggest_float('colsample_bynode', 0.6, 1.0),
+        'n_estimators': trial.suggest_int('n_estimators', 50, 800),
+        'max_depth': trial.suggest_int('max_depth', 3, 20),
+        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.1, log=True),
+        'lambda_l1': trial.suggest_float('lambda_l1', 1e-2, 10.0),
+        'lambda_l2': trial.suggest_float('lambda_l2', 1e-2, 10.0),
+        'num_leaves': trial.suggest_int('num_leaves', 16, 512),
+        'min_data_in_leaf': trial.suggest_int('min_data_in_leaf', 4, 512),
+    }
+    
+    model  = lgb.LGBMRegressor(**params)
+    cv = MonthlyKFold(3)
+    scores = cross_val_score(model, X_all, y_all, cv=cv, scoring='neg_mean_absolute_error')
+        
+    return np.mean(scores)
+
+study = optuna.create_study(direction='maximize', study_name='Regressor')
+study.optimize(lgb_objective, n_trials=200, show_progress_bar=True)
+-------------------------------------------------------------------------------------------------------------
+
+
+
+
+import folium -> 지도 생성
+import plotly.express as px -> px.line(dataframe, x, y) x,y는 데이터프레임의 열 이름
+import plotly.graph_objects as go -> go.scatter(x = dataframe['num'],
+                                                y = dataframe['cat'],
+                                                mode = 'line')
+두 가지 모두 라인 차트를 그리는데 사용하지만 px는 좀 더 고수준, go는 저수준 API라고 볼 수 있다.
+
+def feature_engineer(df_data, df_client, df_gas, df_electricity, df_forecast, df_historical, df_location, df_target):
+    # preprocessing data and change type
+    df_data = (df_data.with_columns(pl.col("datetime").cast(pl.Date).alias("date"),))
+    df_client = (df_client.with_columns((pl.col("date") + pl.duration(days=2)).cast(pl.Date)))
+    df_gas = (df_gas.rename({"forecast_date": "date"}).with_columns((pl.col("date") + pl.duration(days=1)).cast(pl.Date)))
+    df_electricity = (df_electricity.rename({"forecast_date": "datetime"}).with_columns(pl.col("datetime") + pl.duration(days=1)))
+    df_location = (df_location.with_columns(pl.col("latitude").cast(pl.datatypes.Float32),pl.col("longitude").cast(pl.datatypes.Float32)))
+    df_forecast = (
+        df_forecast.rename({"forecast_datetime": "datetime"}).with_columns(pl.col("latitude").cast(pl.datatypes.Float32),pl.col("longitude").cast(pl.datatypes.Float32),
+        pl.col('datetime').dt.convert_time_zone("Europe/Bucharest").dt.replace_time_zone(None).cast(pl.Datetime("us")),).join(df_location, how="left", on=["longitude", "latitude"]).drop("longitude", "latitude")
+    )
+    df_historical = (
+        df_historical.with_columns(pl.col("latitude").cast(pl.datatypes.Float32),pl.col("longitude").cast(pl.datatypes.Float32),
+        pl.col("datetime") + pl.duration(hours=37)).join(df_location, how="left", on=["longitude", "latitude"]).drop("longitude", "latitude")
+    )
+    # Data group and some calculate
+    df_forecast_date = (df_forecast.group_by("datetime").mean().drop("county"))
+    df_forecast_local = (df_forecast.filter(pl.col("county").is_not_null()).group_by("county", "datetime").mean())
+    df_historical_date = (df_historical.group_by("datetime").mean().drop("county"))
+    df_historical_local = (df_historical.filter(pl.col("county").is_not_null()).group_by("county", "datetime").mean())
+
+    # merge serveral data frame and add some features and drop data feature
+    df_data = (df_data.join(df_gas, on="date", how="left")
+        .join(df_client, on=["county", "is_business", "product_type", "date"], how="left")
+        .join(df_electricity, on="datetime", how="left")
+        .join(df_forecast_date, on="datetime", how="left", suffix="_fd")
+        .join(df_forecast_local, on=["county", "datetime"], how="left", suffix="_fl")
+        .join(df_historical_date, on="datetime", how="left", suffix="_hd")
+        .join(df_historical_local, on=["county", "datetime"], how="left", suffix="_hl")
+        .join(df_forecast_date.with_columns(pl.col("datetime") + pl.duration(days=7)), on="datetime", how="left", suffix="_fdw")
+        .join(df_forecast_local.with_columns(pl.col("datetime") + pl.duration(days=7)), on=["county", "datetime"], how="left", suffix="_flw")
+        .join(df_historical_date.with_columns(pl.col("datetime") + pl.duration(days=7)), on="datetime", how="left", suffix="_hdw")
+        .join(df_historical_local.with_columns(pl.col("datetime") + pl.duration(days=7)), on=["county", "datetime"], how="left", suffix="_hlw")
+        .join(df_target.with_columns(pl.col("datetime") + pl.duration(days=2)).rename({"target": "target_1"}), on=["county", "is_business", "product_type", "is_consumption", "datetime"], how="left")
+        .join(df_target.with_columns(pl.col("datetime") + pl.duration(days=3)).rename({"target": "target_2"}), on=["county", "is_business", "product_type", "is_consumption", "datetime"], how="left")
+        .join(df_target.with_columns(pl.col("datetime") + pl.duration(days=4)).rename({"target": "target_3"}), on=["county", "is_business", "product_type", "is_consumption", "datetime"], how="left")
+        .join(df_target.with_columns(pl.col("datetime") + pl.duration(days=5)).rename({"target": "target_4"}), on=["county", "is_business", "product_type", "is_consumption", "datetime"], how="left")
+        .join(df_target.with_columns(pl.col("datetime") + pl.duration(days=6)).rename({"target": "target_5"}), on=["county", "is_business", "product_type", "is_consumption", "datetime"], how="left")
+        .join(df_target.with_columns(pl.col("datetime") + pl.duration(days=7)).rename({"target": "target_6"}), on=["county", "is_business", "product_type", "is_consumption", "datetime"], how="left")
+        .join(df_target.with_columns(pl.col("datetime") + pl.duration(days=14)).rename({"target": "target_7"}), on=["county", "is_business", "product_type", "is_consumption", "datetime"], how="left")
+        .with_columns(pl.col("datetime").dt.ordinal_day().alias("dayofyear"),pl.col("datetime").dt.hour().alias("hour"),pl.col("datetime").dt.day().alias("day"),pl.col("datetime").dt.weekday().alias("weekday"),pl.col("datetime").dt.month().alias("month"),pl.col("datetime").dt.year().alias("year"),)
+        .with_columns(pl.concat_str("county", "is_business", "product_type", "is_consumption", separator="_").alias("category_1"),)
+        .with_columns((np.pi * pl.col("dayofyear") / 183).sin().alias("sin(dayofyear)"),(np.pi * pl.col("dayofyear") / 183).cos().alias("cos(dayofyear)"),(np.pi * pl.col("hour") / 12).sin().alias("sin(hour)"),(np.pi * pl.col("hour") / 12).cos().alias("cos(hour)"),)
+        .with_columns(pl.col(pl.Float64).cast(pl.Float32),)
+        .drop("date", "datetime", "hour", "dayofyear")
+    )
+    
+ return df_data
