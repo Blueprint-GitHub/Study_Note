@@ -53,6 +53,9 @@ df.with_columns(pl.col("column_name").cast(pl.Float32))
 
 ----------------------------------------------------------------------------------
 ### 유용한 사용 예시 ###
+# 데이터 변환
+data.with_columns(pl.col(pl.Float64).cast(pl.Float32),)
+-> float64 행을 모두 float32로 바꿈
 
 # 체이닝 작업
 result_df = (
