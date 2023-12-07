@@ -14,6 +14,8 @@ train.select['data'] , train.filter(pl.col('data') < 5)처럼 사용해야 한�
 
 read_csv(): CSV 파일을 읽어 데이터 프레임을 생성.
 
+data.write_csv("data.csv") : CSV 파일로 데이터 프레임 저장
+
 drop(): 특정 열을 제거.
 dropped_df = df.drop("unnecessary_column")
 dropped_df = df.drop(["column1", "column2", "column3"])
