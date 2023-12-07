@@ -92,6 +92,11 @@ joined_df = df.join(
     2. other_df의 datetime 열은 시간 단위로 절삭되어, df의 datetime과 일치하는
        가장 가까운 시간에 해당하는 행과 조인됨
 
+시간대가 서로 다른 데이터를 합칠때는 다음과 같이 한 쪽의 시간대를 filter로 조정한 뒤 합칠 수 있다.
+forecast_filtered = forecast.filter(pl.col('datetime') <= "2021-05-30 10:00")
+df_merged = forecast_filtered.join(historical, on='datetime', how='left')
+
+
 # 열 결합
 combined_df = df.with_columns(
     (pl.col("first_name") + " " + pl.col("last_name")).alias("full_name")
