@@ -1,4 +1,4 @@
-## **Study Note archive**
+## **Study Note Archive**
 
 * ***혼자 공부하는 머신러닝&딥러닝*** by 박해선 (2023.10.20 ~ 2023.10.25)
 * ***Deep Learning with Python second Edtion*** by Francois Chollet (2023.10.25 ~ 2023.11.03)
