@@ -7,4 +7,4 @@
 * ***Automated Machine Learning in Action*** by by Qingquan Song, Haifeng Jin, and Xia Hu (2023.11.26 ~ 2023.11.30)
 * ***Python-Machine-Learning Third Edition*** by Sebastian Raschka (2023.12.01 ~ 2023.12.05)
 * ***Fundamentals of Data Visualization*** by Claus O. Wilke (2023.12.07 ~ 2023.12.09)
-* ***Machine Learning Engineering*** by Andrly Burkov (2023.12.23 ~ ing)
+* ***Machine Learning Engineering*** by Andrly Burkov (2023.12.23 ~ Pause)
