@@ -8,4 +8,5 @@
 * ***Python-Machine-Learning Third Edition*** by Sebastian Raschka (2023.12.01 ~ 2023.12.05)
 * ***Fundamentals of Data Visualization*** by Claus O. Wilke (2023.12.07 ~ 2023.12.09)
 * ***Machine Learning Engineering*** by Andrly Burkov (2023.12.23 ~ Pause)
+* ***👨🏻‍🎓Academic Credit Back System*** B.S. in Computer Engineering (Jan 2024 ~ Feb 2025)
 * ***(Kmooc)쉽게 시작하는 기초선형대수학*** by Euiyong Park (2025.3.11 ~ 2025.3.29)
